@@ -1,6 +1,7 @@
 package com.squarekernels.pairperfect
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.squarekernels.pairperfect.models.BoardSize
 import com.squarekernels.pairperfect.models.MemoryCard
+import com.squarekernels.pairperfect.models.MemoryGame
 import com.squarekernels.pairperfect.utils.DEFAULT_ICONS
 
 class MainActivity : AppCompatActivity() {
@@ -39,12 +41,14 @@ class MainActivity : AppCompatActivity() {
         tvNumMoves = findViewById(R.id.tvMoves)
         tvNumPairs = findViewById(R.id.tvPairs)
 
-        val chosenImages = DEFAULT_ICONS.shuffled().take(boardSize.getNumPairs())
-        val randomizedImages = (chosenImages + chosenImages).shuffled()
-        val memoryCards = randomizedImages.map { MemoryCard(it) }
+        val memoryGame = MemoryGame(boardSize)
 
+        rvBoard.adapter = CardBoardAdapter(this, boardSize, memoryGame.cards, object: CardBoardAdapter.CardClickListener {
+            override fun onCardClicked(position: Int) {
+                Log.i(TAG, "Card Clicked $position")
+            }
 
-        rvBoard.adapter = CardBoardAdapter(this, boardSize, memoryCards)
+        })
         rvBoard.setHasFixedSize(true)
         rvBoard.layoutManager = GridLayoutManager(this, boardSize.getWidth())
     }
