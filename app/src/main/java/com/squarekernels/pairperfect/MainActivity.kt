@@ -10,6 +10,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.squarekernels.pairperfect.models.BoardSize
+import com.squarekernels.pairperfect.models.MemoryCard
 import com.squarekernels.pairperfect.utils.DEFAULT_ICONS
 
 class MainActivity : AppCompatActivity() {
@@ -32,7 +33,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         toolbar = findViewById(R.id.toolbar)
-
         setSupportActionBar(toolbar)
 
         rvBoard = findViewById(R.id.rvBoard)
@@ -40,9 +40,11 @@ class MainActivity : AppCompatActivity() {
         tvNumPairs = findViewById(R.id.tvPairs)
 
         val chosenImages = DEFAULT_ICONS.shuffled().take(boardSize.getNumPairs())
-        val randomizeImages = (chosenImages + chosenImages).shuffled()
+        val randomizedImages = (chosenImages + chosenImages).shuffled()
+        val memoryCards = randomizedImages.map { MemoryCard(it) }
 
-        rvBoard.adapter = CardBoardAdapter(this, boardSize, randomizeImages)
+
+        rvBoard.adapter = CardBoardAdapter(this, boardSize, memoryCards)
         rvBoard.setHasFixedSize(true)
         rvBoard.layoutManager = GridLayoutManager(this, boardSize.getWidth())
     }

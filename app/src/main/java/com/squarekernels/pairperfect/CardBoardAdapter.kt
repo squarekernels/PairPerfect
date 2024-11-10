@@ -9,6 +9,7 @@ import android.widget.ImageButton
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.squarekernels.pairperfect.models.BoardSize
+import com.squarekernels.pairperfect.models.MemoryCard
 import kotlin.math.min
 
 private const val TAG = "CardImage"
@@ -16,7 +17,7 @@ private const val TAG = "CardImage"
 class CardBoardAdapter(
     private val context: Context,
     private val boardSize: BoardSize,
-    private val cardImages: List<Int>
+    private val cards: List<MemoryCard>
 ):
     RecyclerView.Adapter<CardBoardAdapter.ViewHolder>() {
 
@@ -36,7 +37,8 @@ class CardBoardAdapter(
         val cardSideLength = min(cardWidth, cardHeight)
 
         val view = LayoutInflater.from(context).inflate(R.layout.memory_card, parent, false)
-        val layoutParams = view.findViewById<CardView>(R.id.cardView).layoutParams as ViewGroup.MarginLayoutParams
+        val layoutParams =
+            view.findViewById<CardView>(R.id.cardView).layoutParams as ViewGroup.MarginLayoutParams
 
         layoutParams.width = cardSideLength
         layoutParams.height = cardSideLength
@@ -59,11 +61,11 @@ class CardBoardAdapter(
 
         private val imageButton = itemView.findViewById<ImageButton>(R.id.imageButton)
         fun bind(i: Int) {
-            imageButton.setImageResource(cardImages[layoutPosition])
+            imageButton.setImageResource(if (cards[layoutPosition].isFaceUp) cards[layoutPosition].identifier else R.drawable.ic_launcher_background)
             imageButton.setOnClickListener {
                 Log.i(TAG, "Clicked on position $layoutPosition")
             }
         }
     }
-
 }
+
