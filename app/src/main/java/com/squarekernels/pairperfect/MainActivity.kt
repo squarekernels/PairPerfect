@@ -58,6 +58,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateGameWithFlip(position: Int) {
+        
+
         memoryGame.flipCard(position)
         adapter.notifyDataSetChanged()
     }
