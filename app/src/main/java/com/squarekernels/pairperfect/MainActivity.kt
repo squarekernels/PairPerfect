@@ -22,6 +22,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvNumPairs: TextView
     private lateinit var toolbar: Toolbar
 
+    private lateinit var memoryGame: MemoryGame
+    private lateinit var adapter: CardBoardAdapter
     private var boardSize: BoardSize = BoardSize.EASY
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,15 +43,22 @@ class MainActivity : AppCompatActivity() {
         tvNumMoves = findViewById(R.id.tvMoves)
         tvNumPairs = findViewById(R.id.tvPairs)
 
-        val memoryGame = MemoryGame(boardSize)
+        memoryGame = MemoryGame(boardSize)
 
-        rvBoard.adapter = CardBoardAdapter(this, boardSize, memoryGame.cards, object: CardBoardAdapter.CardClickListener {
+        adapter = CardBoardAdapter(this, boardSize, memoryGame.cards, object: CardBoardAdapter.CardClickListener {
             override fun onCardClicked(position: Int) {
-                Log.i(TAG, "Card Clicked $position")
+                updateGameWithFlip(position)
             }
 
         })
+
+        rvBoard.adapter = adapter
         rvBoard.setHasFixedSize(true)
         rvBoard.layoutManager = GridLayoutManager(this, boardSize.getWidth())
+    }
+
+    private fun updateGameWithFlip(position: Int) {
+        memoryGame.flipCard(position)
+        adapter.notifyDataSetChanged()
     }
 }
