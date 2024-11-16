@@ -1,6 +1,8 @@
 package com.squarekernels.pairperfect
 
+import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,6 +12,10 @@ import android.view.View
 import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -22,10 +28,16 @@ import com.squarekernels.pairperfect.models.BoardSize
 import com.squarekernels.pairperfect.models.MemoryCard
 import com.squarekernels.pairperfect.models.MemoryGame
 import com.squarekernels.pairperfect.utils.DEFAULT_ICONS
+import com.squarekernels.pairperfect.utils.EXTRA_BOARD_SIZE
 import java.util.LinkedList
 
-private const val TAG = "MainActivity"
+
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        private const val TAG = "MainActivity"
+        private const val CREATE_REQUEST_CODE = 54770
+    }
 
     private lateinit var rvBoard: RecyclerView
     private lateinit var tvNumMoves: TextView
@@ -78,9 +90,44 @@ class MainActivity : AppCompatActivity() {
                 showNewSizeDialog()
                 return true
             }
+            R.id.mi_custom -> {
+                showCreationDialog()
+                return true
+
+            }
         }
         return super.onOptionsItemSelected(item)
     }
+
+    private fun showCreationDialog() {
+        val boardSizeView = LayoutInflater.from(this).inflate(R.layout.dialog_board_size,null)
+        val radioGroupSize = boardSizeView.findViewById<RadioGroup>(R.id.radioGroup)
+
+        showAlertDialog("Create your memory board", boardSizeView, View.OnClickListener {
+            val desiredBoardSize = when (radioGroupSize.checkedRadioButtonId) {
+                R.id.rbEasy -> BoardSize.EASY
+                R.id.rbMedium -> BoardSize.MEDIUM
+                else -> BoardSize.HARD
+            }
+            // Navigate to new activity
+            val intent = Intent(this, CreateActivity::class.java)
+            intent.putExtra(EXTRA_BOARD_SIZE, desiredBoardSize)
+            createActivityResultLauncher.launch(intent)
+        })
+    }
+
+
+    var createActivityResultLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(
+        StartActivityForResult()
+    ) { result ->
+        // If the user comes back to this activity from CreateActivity
+        // with no error or cancellation
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data = result.data
+            // Get the data passed from EditActivity
+        }
+    }
+
 
     private fun showNewSizeDialog() {
         val boardSizeView = LayoutInflater.from(this).inflate(R.layout.dialog_board_size,null)
