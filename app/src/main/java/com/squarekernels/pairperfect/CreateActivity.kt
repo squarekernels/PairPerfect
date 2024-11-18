@@ -1,11 +1,14 @@
 package com.squarekernels.pairperfect
 
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.ComponentCaller
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
@@ -29,10 +32,13 @@ import com.squarekernels.pairperfect.utils.requestPermission
 class CreateActivity : AppCompatActivity() {
 
     companion object {
+        private const val TAG = "CreateActivity"
         private const val PICK_PHOTO_CODE  = 665
         private const val READ_EXTERNAL_PHOTOS_CODE = 248
         private const val READ_PHOTOS_PERMISSION = android.Manifest.permission.READ_EXTERNAL_STORAGE
     }
+
+    private lateinit var adapter: ImagePickerAdapter
     private lateinit var rvImagePicker: RecyclerView
     private lateinit var etGameName: EditText
     private lateinit var btnSave: Button
@@ -68,7 +74,7 @@ class CreateActivity : AppCompatActivity() {
         numImagesRequired = boardSize.getNumPairs()
         supportActionBar?.title = "Choose pics (0 / $numImagesRequired)"
 
-        rvImagePicker.adapter = ImagePickerAdapter(this, chosenImagesUris, boardSize, object: ImagePickerAdapter.ImageClickListener {
+        adapter = ImagePickerAdapter(this, chosenImagesUris, boardSize, object: ImagePickerAdapter.ImageClickListener {
             override fun onPlaceHolderClicked() {
                 if (isPermissionGranted(this@CreateActivity, READ_PHOTOS_PERMISSION )) {
                     launchIntentForPhotos()
@@ -78,6 +84,8 @@ class CreateActivity : AppCompatActivity() {
 
             }
         })
+
+        rvImagePicker.adapter = adapter
         rvImagePicker.setHasFixedSize(true)
         rvImagePicker.layoutManager = GridLayoutManager(this, boardSize.getWidth())
     }
@@ -106,11 +114,45 @@ class CreateActivity : AppCompatActivity() {
         startActivityForResult(Intent.createChooser(intent, "Choose pics"), PICK_PHOTO_CODE)
     }
 
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?,
+    ) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == PICK_PHOTO_CODE || requestCode == RESULT_OK || data != null) {
+            val selectedUri = data?.data
+            val clipData = data?.clipData
+
+            if (clipData != null) {
+                Log.i(TAG, "clipData numImages ${clipData.itemCount}: $clipData")
+                for (i in 0 until clipData.itemCount) {
+                    val clipItem = clipData.getItemAt(i)
+                    if (chosenImagesUris.size < numImagesRequired) {
+                        chosenImagesUris.add(clipItem.uri)
+                    }
+                }
+            } else if (selectedUri != null){
+                Log.i(TAG, "data: $selectedUri")
+                chosenImagesUris.add(selectedUri)
+            }
+            adapter.notifyDataSetChanged()
+            supportActionBar?.title = "Choose pics (${chosenImagesUris.size}/$numImagesRequired"
+            btnSave.isEnabled = shouldEnableButton()
+        } else {
+            Log.w(TAG, "Did not get data back from launched activity, user likely canceled flow")
+            return
+        }
+
+
+    }
+
+    private fun shouldEnableButton(): Boolean {
+        return true
+    }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {
-
-
             finish()
             return true
         }

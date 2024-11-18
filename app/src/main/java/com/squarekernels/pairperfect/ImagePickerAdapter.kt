@@ -20,7 +20,6 @@ class ImagePickerAdapter(
 
     interface ImageClickListener {
         fun onPlaceHolderClicked()
-        
     }
 
         override fun onCreateViewHolder(
