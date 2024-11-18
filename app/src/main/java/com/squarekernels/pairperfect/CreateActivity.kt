@@ -28,6 +28,10 @@ import com.squarekernels.pairperfect.models.BoardSize
 import com.squarekernels.pairperfect.utils.EXTRA_BOARD_SIZE
 import com.squarekernels.pairperfect.utils.isPermissionGranted
 import com.squarekernels.pairperfect.utils.requestPermission
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class CreateActivity : AppCompatActivity() {
 
@@ -114,37 +118,47 @@ class CreateActivity : AppCompatActivity() {
         startActivityForResult(Intent.createChooser(intent, "Choose pics"), PICK_PHOTO_CODE)
     }
 
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?,
-    ) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PICK_PHOTO_CODE || requestCode == RESULT_OK || data != null) {
-            val selectedUri = data?.data
-            val clipData = data?.clipData
+        // Launch the suspending function in a coroutine scope
+        CoroutineScope(Dispatchers.Main).launch {
+            handleImageSelection(requestCode, resultCode, data)
+        }
+    }
+
+    suspend fun handleImageSelection(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == PICK_PHOTO_CODE && resultCode == RESULT_OK && data != null) {
+            val selectedUri = data.data
+            val clipData = data.clipData
 
             if (clipData != null) {
                 Log.i(TAG, "clipData numImages ${clipData.itemCount}: $clipData")
-                for (i in 0 until clipData.itemCount) {
-                    val clipItem = clipData.getItemAt(i)
-                    if (chosenImagesUris.size < numImagesRequired) {
-                        chosenImagesUris.add(clipItem.uri)
+                withContext(Dispatchers.Default) { // Offload to a background thread
+                    for (i in 0 until clipData.itemCount) {
+                        val clipItem = clipData.getItemAt(i)
+                        if (chosenImagesUris.size < numImagesRequired) {
+                            chosenImagesUris.add(clipItem.uri)
+                            Log.i(TAG, "current thread: ${Thread.currentThread().name}")
+                        }
                     }
                 }
-            } else if (selectedUri != null){
+            } else if (selectedUri != null) {
                 Log.i(TAG, "data: $selectedUri")
-                chosenImagesUris.add(selectedUri)
+                withContext(Dispatchers.Default) { // Offload to a background thread
+                    chosenImagesUris.add(selectedUri)
+                    Log.i(TAG, "current thread: ${Thread.currentThread().name}")
+                }
             }
-            adapter.notifyDataSetChanged()
-            supportActionBar?.title = "Choose pics (${chosenImagesUris.size}/$numImagesRequired"
-            btnSave.isEnabled = shouldEnableButton()
+
+            // Once background work is done, switch back to the main thread to update UI
+            withContext(Dispatchers.Main) {
+                adapter.notifyDataSetChanged()
+                supportActionBar?.title = "Choose pics (${chosenImagesUris.size}/$numImagesRequired)"
+                btnSave.isEnabled = shouldEnableButton()
+            }
         } else {
             Log.w(TAG, "Did not get data back from launched activity, user likely canceled flow")
-            return
         }
-
-
     }
 
     private fun shouldEnableButton(): Boolean {
