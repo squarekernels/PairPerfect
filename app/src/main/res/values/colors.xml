@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="dark_gray">#3E3E3E</color>
+    <color name="primary">#4CAF50</color>
+    <color name="secondary">#7F977A</color>
+    <color name="tertiary">#5A9BA2</color>
+    <color name="error">#FF5449</color>
+    <color name="neutral">#90918C</color>
+    <color name="neutral_variant">#8C9388</color>
+    <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="color_gray">#616161FF</color>
 </resources>

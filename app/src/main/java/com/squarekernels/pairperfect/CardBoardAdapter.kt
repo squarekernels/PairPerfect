@@ -14,7 +14,7 @@ import com.squarekernels.pairperfect.models.BoardSize
 import com.squarekernels.pairperfect.models.MemoryCard
 import kotlin.math.min
 
-private const val TAG = "CardImage"
+//private const val TAG = "CardImage"
 
 class CardBoardAdapter(
     private val context: Context,
@@ -59,7 +59,7 @@ class CardBoardAdapter(
         holder: ViewHolder,
         position: Int
     ) {
-        holder.bind(position)
+        holder.bind()
     }
 
     override fun getItemCount(): Int = boardSize.numCards
@@ -67,11 +67,11 @@ class CardBoardAdapter(
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         private val imageButton = itemView.findViewById<ImageButton>(R.id.imageButton)
-        fun bind(i: Int) {
+        fun bind() {
             imageButton.setImageResource(if (cards[layoutPosition].isFaceUp) cards[layoutPosition].identifier else R.drawable.ic_launcher_background)
 
             imageButton.alpha = if (cards[layoutPosition].isMatched) .4f else 1.0f
-            val colorStateList = if (cards[layoutPosition].isMatched) ContextCompat.getColorStateList(context, R.color.color_gray) else null
+            val colorStateList = if (cards[layoutPosition].isMatched) ContextCompat.getColorStateList(context, R.color.primary) else null
             ViewCompat.setBackgroundTintList(imageButton, colorStateList)
 
             imageButton.setOnClickListener {
